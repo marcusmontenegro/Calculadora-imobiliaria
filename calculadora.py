@@ -3,7 +3,7 @@ import pandas as pd
 import locale
 import re
 
-locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+#locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 def format_brl(raw: str) -> str:
         digits = re.sub(r'\D', '', raw)
@@ -25,7 +25,6 @@ def calculadora_page():
 ############################### HEADER CONTAINER ####################################################
 #####################################################################################################
 
-    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
     st.title("Calculadora")
     with st.container(border=True) as header_container:
