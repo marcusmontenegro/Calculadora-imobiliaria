@@ -5,8 +5,9 @@ import pandas as pd
 
 st.set_page_config(layout="wide")
 
-st.header("ABC Imóveis")
+st.header("Will Imóveis")
 st.markdown('<style>' + open('./style.css').read() + '</style>', unsafe_allow_html=True)
+
 
 
 with st.sidebar:
