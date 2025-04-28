@@ -2,4 +2,3 @@ pandas
 streamlit
 streamlit-on-Hover-tabs
 segno
-pdfki
