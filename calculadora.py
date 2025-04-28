@@ -2,8 +2,24 @@ import streamlit as st
 import pandas as pd
 import locale
 import re
+import segno
 
-#locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+
+
+locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+
+list_empreendimentos = [{"Empreendimento": "Senna Tower","Descrição": "Senna Tower traz ao Brasil as mais inovadoras soluções para a construção de supertalls e será o primeiro residencial a alcançar a maior certificação em sustentabilidade do mundo." , "url": "https://www.sennatower.com/"}]
+
+escolha_empreendimento = []
+
+for empreendimento in list_empreendimentos:
+    escolha_empreendimento.append(empreendimento["Empreendimento"])
+     
+
+#####################################################################################################
+############################### FUNCTIONS ###########################################################
+#####################################################################################################
+
 
 def format_brl(raw: str) -> str:
         digits = re.sub(r'\D', '', raw)
@@ -19,12 +35,15 @@ def make_on_change(key):
             st.session_state[key] = format_brl(st.session_state[key])
         return callback
 
+
+#####################################################################################################
+############################### PAGE DEFINITION #####################################################
+#####################################################################################################
+
+
 def calculadora_page():
 
-#####################################################################################################
 ############################### HEADER CONTAINER ####################################################
-#####################################################################################################
-
 
     st.title("Calculadora")
     with st.container(border=True) as header_container:
@@ -37,12 +56,16 @@ def calculadora_page():
 
         with column2:
                 st.markdown("<h4>Empreendimento:</h4>", unsafe_allow_html=True)   
-                empreendimento = st.text_input("Empreendimento:",key='valor_empreendimento',label_visibility="collapsed")
+                empreendimento = st.selectbox(
+                                                "Empreendimento:",
+                                                escolha_empreendimento,
+                                                index=None,
+                                                label_visibility="collapsed"
+                                            )
+
         with column3:
                 st.markdown("<h4>Apartamento:</h4>", unsafe_allow_html=True)   
-                empreendimento = st.text_input("Apartamento:",key='valor_apartamento',label_visibility="collapsed")
-
-
+                apartamento = st.text_input("Apartamento:",key='valor_apartamento',label_visibility="collapsed")
 
         
         column1, column2, column3, column4, column5, column6 = st.columns(6)
@@ -60,16 +83,14 @@ def calculadora_page():
                 valor_por = st.text_input("Por:", value=st.session_state.valor_por, key='valor_por' , label_visibility="collapsed", on_change=make_on_change('valor_por'))
 
         
-
-#####################################################################################################
 ############################### BODY CONTAINER ######################################################
-#####################################################################################################
+
 
     with st.container(border=False) as body_container:
 
             left, mid, right = st.columns(3)
 
-################################ CALCULADORA ########################################################
+###### CALCULADORA ######
 
             with mid:
                 with st.container(border=True) as calculadora:
@@ -168,8 +189,36 @@ def calculadora_page():
                         total_permuta = f'R$ {tabela_permuta['Valor'].sum():,.2f}'
                         total_permuta_formatado = total_permuta.replace('.', '|').replace(',', '.').replace('|', ',') # Troca para formato brasileiro
                         st.markdown(f'<div align="right">{total_permuta_formatado}</div>', unsafe_allow_html=True)
+                    
+                    total_planejado= ( tabela_entrada['Valor'].sum() + tabela_parcelas['Total'].sum() + tabela_reforcos['Total'].sum() + tabela_entrega_chaves['Valor'].sum() + tabela_permuta['Valor'].sum())
 
-################################ RECOMENDAÇÕES ########################################################
+                    st.markdown(f'<div align="right"><h3>Valor Total: R$ {total_planejado:,.2f}</h3></div>', unsafe_allow_html=True)
+
+                    
+
+###### INFORMAÇÕES DO IMÓVEL ######
+
+            with left:
+                with st.container(border=True) as informacoes:
+                    st.markdown("<h4>Informações do Imóvel:</h4>", unsafe_allow_html=True)
+                    
+                    if empreendimento == None:
+                        st.markdown("", unsafe_allow_html=True)
+
+                    else:
+                        st.markdown(f'<h4>{empreendimento}</h4>', unsafe_allow_html=True)
+
+                        for cadastro in list_empreendimentos:
+                            if cadastro["Empreendimento"] == empreendimento:
+                                link = segno.make(cadastro["url"])
+                                link.save("link.png", border= 1, scale= 5)
+                                with open("link.png", "rb") as f:
+                                    bytes_link = f.read()
+                                    st.image(bytes_link)
+                                st.write(cadastro["Descrição"], unsafe_allow_html=True)
+                                st.markdown(f'<a href="{cadastro["url"]}" target="_blank">Clique aqui para mais informações</a>', unsafe_allow_html=True)
+
+###### RECOMENDAÇÕES ######
             
             with right:
                 with st.container(border=True) as recomendacoes:
@@ -193,6 +242,7 @@ def calculadora_page():
                     
                     st.markdown("<h4>Considerações:</h4>", unsafe_allow_html=True)
                     texto_longo = st.text_area("Digite aqui seu texto:",label_visibility="collapsed", height=200)
+
 
 
 
