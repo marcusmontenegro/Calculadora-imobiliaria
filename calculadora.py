@@ -6,7 +6,7 @@ import segno
 
 
 
-locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+#locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 list_empreendimentos = [{"Empreendimento": "Senna Tower","Descrição": "Senna Tower traz ao Brasil as mais inovadoras soluções para a construção de supertalls e será o primeiro residencial a alcançar a maior certificação em sustentabilidade do mundo." , "url": "https://www.sennatower.com/"}]
 
