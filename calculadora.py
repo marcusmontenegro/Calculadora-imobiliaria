@@ -3,10 +3,11 @@ import pandas as pd
 import locale
 import re
 import segno
+from funcs_suporte import format_brl, make_on_change, coalesce, remove_chars, build_string
 
 
 
-#locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 list_empreendimentos = [{"Empreendimento": "Senna Tower","Descrição": "Senna Tower traz ao Brasil as mais inovadoras soluções para a construção de supertalls e será o primeiro residencial a alcançar a maior certificação em sustentabilidade do mundo." , "url": "https://www.sennatower.com/"}]
 
@@ -15,26 +16,6 @@ escolha_empreendimento = []
 for empreendimento in list_empreendimentos:
     escolha_empreendimento.append(empreendimento["Empreendimento"])
      
-
-#####################################################################################################
-############################### FUNCTIONS ###########################################################
-#####################################################################################################
-
-
-def format_brl(raw: str) -> str:
-        digits = re.sub(r'\D', '', raw)
-        if not digits:
-            return ""
-        value = float(digits) / 100
-        return locale.currency(value, grouping=True)
-
-
-    # Generate on_change callbacks for formatting
-def make_on_change(key):
-        def callback():
-            st.session_state[key] = format_brl(st.session_state[key])
-        return callback
-
 
 #####################################################################################################
 ############################### PAGE DEFINITION #####################################################
@@ -82,7 +63,20 @@ def calculadora_page():
                     st.session_state.valor_por = ""   
                 valor_por = st.text_input("Por:", value=st.session_state.valor_por, key='valor_por' , label_visibility="collapsed", on_change=make_on_change('valor_por'))
 
-        
+        with column5:
+                desconto =  int( coalesce( remove_chars(str(valor_de)),0) ) - int( coalesce( remove_chars(str(valor_por)),0)) 
+                desconto_percentual = desconto / int( coalesce( remove_chars(str(valor_de)),1) ) * 100
+                if valor_por != valor_de and desconto_percentual != 100:
+                    st.metric("Desconto", format_brl(str(desconto)), delta= f'{desconto_percentual:.0f}%' , border=True)
+                    st.markdown(
+                                '''
+                                <style>
+                                [data-testid="stMetricDelta"] svg {
+                                    transform: rotate(180deg);
+                                }
+                                </style>
+                                ''',unsafe_allow_html=True)
+            
 ############################### BODY CONTAINER ######################################################
 
 
@@ -192,7 +186,9 @@ def calculadora_page():
                     
                     total_planejado= ( tabela_entrada['Valor'].sum() + tabela_parcelas['Total'].sum() + tabela_reforcos['Total'].sum() + tabela_entrega_chaves['Valor'].sum() + tabela_permuta['Valor'].sum())
 
-                    st.markdown(f'<div align="right"><h3>Valor Total: R$ {total_planejado:,.2f}</h3></div>', unsafe_allow_html=True)
+                    total_planejado = format_brl(str(total_planejado*10))
+
+                    st.markdown(f'<div align="right"><h3>Valor Total: {total_planejado}</h3></div>', unsafe_allow_html=True)
 
                     
 
@@ -222,24 +218,30 @@ def calculadora_page():
             
             with right:
                 with st.container(border=True) as recomendacoes:
-                    st.markdown("<h4>Recomendações:</h4>", unsafe_allow_html=True)
+                    st.markdown("<h4>Recomendações</h4>", unsafe_allow_html=True)
                             
-                    valor_por_digits = re.sub(r'\D', '', valor_por)
+                    # Calcula os valores a serem sugeridos 
+                    valor_por_digits = remove_chars(valor_por)
                     if not valor_por_digits:
                         return ""
                     valor_por_float = float(valor_por_digits) / 100
                     
-                    diferenca = valor_por_float - ( tabela_entrada['Valor'].sum() + tabela_parcelas['Total'].sum() + tabela_reforcos['Total'].sum() + tabela_entrega_chaves['Valor'].sum() + tabela_permuta['Valor'].sum())
-                    
+                    diferenca = valor_por_float - (float(remove_chars(total_planejado))/100)
 
-                    distribuir_em_parcelas = diferenca / tabela_parcelas['Parcelas'].sum()
+                    distribuir_em_parcelas = format_brl(str(diferenca*10 /  coalesce(tabela_parcelas['Parcelas'].sum(),1)))
 
-                    distribuir_na_entrada = diferenca / 6
+                    distribuir_na_entrada = format_brl(str(round(float(diferenca / 6),2)))
                     
-                    distribuir_em_reforcos = diferenca / tabela_reforcos['Reforços'].sum()
-                    
-                    
-                    
+                    distribuir_em_reforcos = format_brl(str(diferenca*10 / coalesce(tabela_reforcos['Reforços'].sum(),1)))
+
+                    # Cria textos de recomendações
+                    if diferenca > 0:
+
+                        st.write_stream(build_string('Seguem algumas sugestões para ajustar a diferença entre o valor sugerido e o calculado:','') )
+                        st.write_stream(build_string('- Incrementar a entrada com 6 parcelas de ', distribuir_na_entrada) )
+                        st.write_stream(build_string('- Aumentar o valor das parcelas em ', distribuir_em_parcelas) )
+                        st.write_stream(build_string('- Aumentar o valor dos reforços em ', distribuir_em_reforcos) )
+
                     st.markdown("<h4>Considerações:</h4>", unsafe_allow_html=True)
                     texto_longo = st.text_area("Digite aqui seu texto:",label_visibility="collapsed", height=200)
 
