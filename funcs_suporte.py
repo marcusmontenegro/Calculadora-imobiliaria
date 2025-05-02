@@ -1,5 +1,5 @@
 import streamlit as st
-import locale
+from babel.numbers import format_currency
 import time
 import re
 
@@ -13,7 +13,7 @@ def format_brl(raw: str) -> str:
         if not digits:
             return ""
         value = float(digits) / 100
-        return locale.currency(value, grouping=True)
+        return format_currency(value, 'BRL', locale='pt_BR')
 
 
 def make_on_change(key):

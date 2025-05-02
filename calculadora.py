@@ -1,13 +1,12 @@
 import streamlit as st
 import pandas as pd
-import locale
-import re
+# import locale
 import segno
 from funcs_suporte import format_brl, make_on_change, coalesce, remove_chars, build_string
 
 
 
-locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+# locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 list_empreendimentos = [{"Empreendimento": "Senna Tower","Descrição": "Senna Tower traz ao Brasil as mais inovadoras soluções para a construção de supertalls e será o primeiro residencial a alcançar a maior certificação em sustentabilidade do mundo." , "url": "https://www.sennatower.com/"}]
 
